@@ -11,7 +11,7 @@ you complete your routine. Every feature has its own switch and settings.
   or tested on a real iPhone in this Linux workspace. Do not rely on it as your
   only alarm until the native checklist passes.
 - **Repository:** public source is published at https://github.com/50thycal/daybreak-alarm.
-- **Hosting:** configured for Vercel; deployment is pending because the browser session returns to sign-in during repository import. No live deployment is verified.
+- **Hosting:** live at https://daybreak-alarm.vercel.app in the existing `50cals-projects` Vercel team. Production deployment was verified Ready on October 11, 2026.
 - **Privacy:** device-local records. No account, backend database, tracking scripts,
   or cloud sync. Web and native stores are separate; export/import transfers data.
 
@@ -62,12 +62,11 @@ change timezone. Re-arm after travel or schedule changes.
 
 ## Publish the public repository and deploy
 
-Create an empty public `50thycal/daybreak-alarm` GitHub repository, then push the
-reviewed source. Import that repository into the intended Vercel team. Select
-framework **Other**, build command `npm run build`, output directory `dist`.
+The public `50thycal/daybreak-alarm` GitHub repository is connected to the
+`daybreak-alarm` project in Vercel's existing `50cals-projects` team. Production
+branch: `main`. Framework: **Other**. Build command: `npm run build`. Output: `dist`.
 No environment variables, database, or paid integrations are needed. `vercel.json`
-includes content/security headers. Vercel will deploy future pushes automatically
-after Git integration is connected.
+includes content/security headers. Future pushes to `main` deploy automatically.
 
 The native app is distributed separately through Xcode/TestFlight/App Store.
 Deploying the website does not install the native app on an iPhone.
@@ -127,7 +126,12 @@ npm run sounds
 The automated suite covers lifecycle rules and DOM wiring, including QR encoder/
 decoder interoperability. It does not prove camera permissions, audible delivery,
 locked-screen behavior, OS dismissal actions, or offline PWA installation on a
-physical iPhone. A visual browser pass was unavailable in the managed environment.
+physical iPhone. On October 11, 2026, live desktop Chrome verification confirmed
+the schedule/routine/insights UI, piano preview and practice audio playback indicators,
+independent check-in configuration, settings persistence after reload, immediate
+quieting, a timed arithmetic mission, and a completed practice journal record excluded
+from effectiveness totals. Speaker audibility/quality, camera scanning, physical-iPhone
+PWA/offline behavior, and native delivery remain device checks.
 Run the real-device checklist in `docs/DEVICE_TESTING.md` before trusting alarms.
 
 MIT licensed. Dependencies retain their own licenses. Private morning data must
