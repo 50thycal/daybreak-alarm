@@ -11,7 +11,7 @@ you complete your routine. Every feature has its own switch and settings.
   or tested on a real iPhone in this Linux workspace. Do not rely on it as your
   only alarm until the native checklist passes.
 - **Repository:** public source is published at https://github.com/50thycal/daybreak-alarm.
-- **Hosting:** live at https://daybreak-alarm.vercel.app in the existing `50cals-projects` Vercel team. Production deployment was verified Ready on October 11, 2026.
+- **Hosting:** live at https://daybreak-alarm.vercel.app in the existing `50cals-projects` Vercel team. Production deployment was verified Ready on October 11, 2026, and re-verified the same day through the Vercel API: the production alias serves the `main` build, byte-identical to a local `npm run build` (see `docs/HANDOFF.md`).
 - **Privacy:** device-local records. No account, backend database, tracking scripts,
   or cloud sync. Web and native stores are separate; export/import transfers data.
 
@@ -50,7 +50,19 @@ npm test
 npm run dev
 ```
 
-Visit `http://localhost:3000`. The browser edition plays sound only while the page
+Visit `http://localhost:3000`.
+
+To smoke-test a running site in a throwaway headless Chromium profile (UI, all five
+sound previews, independent settings and persistence, practice math mission, QR
+camera mission with a synthetic camera feed, insights, exports, service worker and
+offline reload over HTTPS, CSP violations, and mobile widths):
+
+```sh
+npm i --no-save playwright && npx playwright install chromium
+BASE_URL=https://daybreak-alarm.vercel.app/ npm run smoke
+```
+
+Playwright is intentionally not a project dependency, so deployments stay lean. The browser edition plays sound only while the page
 is active and the browser allows audio. Screen wake lock is best effort. Installing
 it on the Home Screen does **not** give it native alarm privileges. Keep Apple
 Clock as a separate backup. Daybreak does not control Apple Clock alarms.
@@ -130,8 +142,13 @@ physical iPhone. On October 11, 2026, live desktop Chrome verification confirmed
 the schedule/routine/insights UI, piano preview and practice audio playback indicators,
 independent check-in configuration, settings persistence after reload, immediate
 quieting, a timed arithmetic mission, and a completed practice journal record excluded
-from effectiveness totals. Speaker audibility/quality, camera scanning, physical-iPhone
-PWA/offline behavior, and native delivery remain device checks.
+from effectiveness totals. A follow-up headless Chromium run of `npm run smoke` against
+the production build (served locally with the same `vercel.json` headers, because the
+build container could not reach `*.vercel.app` directly) passed all 40 checks,
+including all five previews, a camera-scanned QR mission from a synthetic video feed,
+service-worker offline reload, zero CSP violations, and 320–1600 px layouts.
+Speaker audibility/quality, real-camera scanning, physical-iPhone PWA/offline
+behavior, and native delivery remain device checks.
 Run the real-device checklist in `docs/DEVICE_TESTING.md` before trusting alarms.
 
 MIT licensed. Dependencies retain their own licenses. Private morning data must

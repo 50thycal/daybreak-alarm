@@ -20,14 +20,61 @@ Vercel project: https://vercel.com/50cals-projects/daybreak-alarm
 - Vercel's Production Deployment panel showed Ready and the production domain.
 - The production domain rendered the actual Daybreak UI in desktop Chrome.
 
-The connected Vercel API still denied team access with a scope 403. The local CLI
-could not resolve Vercel from the restricted shell. Chrome's existing GitHub sign-in
-succeeded, and browser import/deployment completed in the intended team. Do not
-treat the connector's access error as a failure of the verified browser deployment.
+During the initial deployment, the connected Vercel API denied team access with a
+scope 403 and the local CLI could not reach Vercel, so the project was imported in
+the browser. That 403 no longer occurs: in the re-verification below the connector
+read the team's project, deployments, alias, and build logs.
 
 The five original WAV assets and both PNG icons are included. The prior production
 build, 26 model/storage/DOM/QR interoperability tests, and production dependency
 audit (zero vulnerabilities) are recorded from implementation verification.
+
+## Re-verification through the Vercel API — October 11, 2026
+
+Read-only checks with the Vercel connector, scoped to `team_8lGVtLaYL34zI4Nzzc8SKSyF`:
+
+- Project `prj_ZdQeUfjIGz5QgEiWtsAW6XpPzgFd` (`daybreak-alarm`), framework Other,
+  domains `daybreak-alarm.vercel.app`, `daybreak-alarm-50cals-projects.vercel.app`,
+  `daybreak-alarm-git-main-50cals-projects.vercel.app`.
+- Three production deployments, all READY, all created by `50thycal` from `main`:
+  `dpl_BfREXdNLaAimVTVfGN8BNT8CtLyU` (`d3a95a7`), `dpl_4MsWQRYd9gZ8mnbUuaNwWeMC5gPh`
+  (`6f25808`), `dpl_CyZwFjcu4Zm6RwtBui3PFvtt3QeE` (`178814a`).
+- Alias `daybreak-alarm.vercel.app` → `dpl_CyZwFjcu4Zm6RwtBui3PFvtt3QeE`
+  (https://daybreak-alarm-ivi09ofus-50cals-projects.vercel.app).
+- Build log: clone `main@178814a`, `npm run build` (`node scripts/build.mjs`), output
+  `dist`, "Deployment completed". No environment variables were involved.
+- The production domain returned HTTP 200 with every `vercel.json` security header.
+  Vercel ETags (content MD5) matched a local `npm run build` of `178814a` exactly:
+  `index.html` `950f27b2…`, `app.js` `3b1fb233…` (200,731 bytes, also byte-compared),
+  `style.css` `4193c257…`, `sw.js` `b8e13a24…`, `manifest.json` `4d0c8fa1…`,
+  `sounds/piano.wav` `097a8bc8…` (1,234,844 bytes, `audio/wave`).
+- Deployment Protection is Standard (`all_except_custom_domains`): generated
+  deployment and preview URLs require Vercel sign-in, and project domains such as
+  `daybreak-alarm.vercel.app` do not. Content was fetched through the connector's
+  temporary protection-bypass link, so confirm anonymous access once in a private
+  browser window.
+
+Because the production files equal the local build, `npm run smoke` ran against that
+build served with the same `vercel.json` headers over HTTPS. (The build container's
+network policy blocked direct requests to `*.vercel.app`.) Headless Chromium: 40/40
+checks passed, covering every tab, previews of all five presets with playback
+advancing and stopping after 8 s, independent settings persisting after reload, a
+saved custom preset, practice ringing → immediate quiet → math mission with a retry
+hint and the 10 s engagement time → complete, practice excluded from Insights,
+JSON/CSV export, service worker activation and offline reload, a QR mission completed
+by scanning the saved code from a synthetic camera feed, zero CSP violations or
+console errors, and no horizontal overflow at mobile width. Unit/DOM suite: 26/26.
+Production dependency audit: 0 vulnerabilities.
+
+The same pass caught two layout defects, now fixed in `web/style.css`:
+- Fixed-width time inputs cut off "PM"/"AM" at every viewport width. Inputs now size
+  to their content with a viewport-scaled font and fit from 320 to 1600 px.
+- `.text-link` buttons, such as "Save current", showed the browser's grey button
+  background.
+They reach production when the change merges to `main`, which redeploys automatically.
+
+The "Ambient + greeting" preset reuses the ambient bed (`voice.wav` is identical to
+`ambient.wav`) and adds a device-spoken greeting in the foreground, as documented.
 
 ## Live browser smoke test
 
