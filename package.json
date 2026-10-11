@@ -1,0 +1,27 @@
+{
+  "name": "daybreak-alarm",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Gentle alarms, configurable wake-up missions, and private morning insights.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "dev": "node scripts/serve.mjs",
+    "ios:prepare": "node scripts/prepare-ios.mjs",
+    "sounds": "python3 scripts/generate-sounds.py",
+    "test:ui": "node --test tests/ui.test.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "jsqr": "1.4.0",
+    "qrcode": "1.5.4"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "jsdom": "30.1.2"
+  }
+}

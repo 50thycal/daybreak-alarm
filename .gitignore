@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.vercel/
+.env*
+*.xcuserstate
+xcuserdata/
+DerivedData/
+ios/Daybreak/Web/
+ios/Daybreak/Sounds/
+ios/*.xcodeproj/
+.DS_Store
