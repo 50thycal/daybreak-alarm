@@ -18,7 +18,9 @@ you complete your routine. Every feature has its own switch and settings.
 ## What is included
 
 - Dark, responsive schedule screen with an interactive 24-hour dial, accessible
-  time inputs, weekday selection, and planned time in bed.
+  time inputs, weekday selection, and planned time in bed. Drag a handle to change
+  bedtime or wake time; drag the arc itself (or focus it and use the arrow keys:
+  5 min, Shift ×3, Page Up/Down 1 h) to move both together and keep the duration.
 - Five original sound presets: soft piano, synthesized birds, ocean/chimes,
   warm ambient, and ambient plus a device-spoken greeting.
 - Adjustable audio level and ramp; preview every preset.
@@ -52,8 +54,8 @@ npm run dev
 
 Visit `http://localhost:3000`.
 
-To smoke-test a running site in a throwaway headless Chromium profile (UI, all five
-sound previews, independent settings and persistence, practice math mission, QR
+To smoke-test a running site in a throwaway headless Chromium profile (UI, sleep
+dial handle and whole-window dragging, all five sound previews, independent settings and persistence, practice math mission, QR
 camera mission with a synthetic camera feed, insights, exports, service worker and
 offline reload over HTTPS, CSP violations, and mobile widths):
 

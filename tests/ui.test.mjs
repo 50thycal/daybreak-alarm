@@ -47,6 +47,11 @@ test('path game requires the correct ordered steps and then a delayed check-in',
   for(let n=1;n<=6;n++)h.click(`[data-number="${n}"]`);
   assert.equal(h.data().active.state,'waiting-checkin');assert.equal(h.data().records.length,0);assert.deepEqual(h.failures,[]);h.dom.window.close();
 });
+test('the sleep arc moves bedtime and wake up together from the keyboard',async()=>{const h=await setup();const doc=h.w.document,key=(k,shiftKey=false)=>doc.querySelector('[data-handle="window"]').dispatchEvent(new h.w.KeyboardEvent('keydown',{key:k,shiftKey,bubbles:true}));
+  key('ArrowRight');assert.equal(h.data().config.bedtime,'23:05');assert.equal(h.data().config.wakeTime,'07:05');
+  key('PageDown');key('ArrowLeft',true);assert.equal(h.data().config.bedtime,'21:50');assert.equal(h.data().config.wakeTime,'05:50');
+  assert.equal(doc.querySelector('#bedtime').value,'21:50');assert.equal(doc.querySelector('#wake-time').value,'05:50');assert.match(doc.querySelector('#schedule-duration').textContent,/^8 hours 0 minutes/);
+  assert.equal(doc.activeElement,doc.querySelector('[data-handle="window"]'));assert.deepEqual(h.failures,[]);h.dom.window.close();});
 test('range changes are included when practice starts without leaving the settings screen',async()=>{const h=await setup();h.nav('routine');const range=h.w.document.querySelector('[data-config="volume"]');range.value=35;range.dispatchEvent(new h.w.Event('input'));h.click('#practice-button');await h.settle();assert.equal(h.data().active.config.volume,35);h.dom.window.close();});
 test('native stop interactions preserve counter, cancel only after completion, and deduplicate',async()=>{
   const h=await setup(null,true);await h.settle();const config=h.data().config;
