@@ -10,7 +10,8 @@
     "dev": "node scripts/serve.mjs",
     "ios:prepare": "node scripts/prepare-ios.mjs",
     "sounds": "python3 scripts/generate-sounds.py",
-    "test:ui": "node --test tests/ui.test.mjs"
+    "test:ui": "node --test tests/ui.test.mjs",
+    "smoke": "node scripts/smoke.mjs"
   },
   "engines": {
     "node": ">=22"
