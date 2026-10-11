@@ -35,6 +35,10 @@ export function sleepMinutes(config) {
   const minutes=t=>t.split(':').reduce((h,m)=>Number(h)*60+Number(m));
   return (minutes(config.wakeTime)-minutes(config.bedtime)+1440)%1440;
 }
+export function shiftWindow(config, deltaMinutes) {
+  const shift=t=>{const [h,m]=t.split(':').map(Number),total=((h*60+m+Math.round(deltaMinutes))%1440+1440)%1440;return `${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;};
+  return {...config, bedtime:shift(config.bedtime), wakeTime:shift(config.wakeTime)};
+}
 export function routineKey(config) {
   const {name,bedtime,wakeTime,days,qrLabel,qrToken,feedback,sleepContext,...treatment}=normalize(config);
   return JSON.stringify(treatment);

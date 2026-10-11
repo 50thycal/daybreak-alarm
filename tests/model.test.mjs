@@ -1,9 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {normalize,defaults,nextWake,sleepMinutes,createSession,transition,routineKey,compareRoutines} from '../src/model.js';
+import {normalize,defaults,nextWake,sleepMinutes,shiftWindow,createSession,transition,routineKey,compareRoutines} from '../src/model.js';
 const session=(overrides={})=>createSession({...defaults,...overrides},100000,'browser');
 test('settings clamp unsafe values and preserve valid toggles',()=>{const c=normalize({volume:1000,quietSeconds:-5,game:false,wakeTime:'broken',days:[1,9,1]});assert.equal(c.volume,100);assert.equal(c.quietSeconds,15);assert.equal(c.game,false);assert.equal(c.wakeTime,'07:00');assert.deepEqual(c.days,[1]);});
 test('time in bed crosses midnight and is not an observed sleep duration',()=>assert.equal(sleepMinutes(normalize({bedtime:'23:15',wakeTime:'07:00'})),465));
+test('shifting the sleep window moves both times, wraps midnight, and keeps the duration',()=>{const c=normalize({bedtime:'23:30',wakeTime:'06:30'});const later=shiftWindow(c,45);assert.equal(later.bedtime,'00:15');assert.equal(later.wakeTime,'07:15');const earlier=shiftWindow(c,-24*60-60);assert.equal(earlier.bedtime,'22:30');assert.equal(earlier.wakeTime,'05:30');for(const d of [-725,-5,0,5,725,1440])assert.equal(sleepMinutes(shiftWindow(c,d)),sleepMinutes(c));assert.equal(c.bedtime,'23:30');});
 test('next wake respects selected weekdays and future dates',()=>{const now=new Date(2026,9,11,8,0);const d=nextWake(normalize({days:[1],wakeTime:'07:00'}),now);assert.equal(d.getDay(),1);assert.equal(d.getHours(),7);assert.ok(d>now);assert.equal(nextWake(normalize({days:[]}),now),null);});
 test('quiet does not extend an already active mission',()=>{const s=transition(session(),'quiet',100001);const again=transition(s,'quiet',140000);assert.equal(again.deadline,s.deadline);assert.equal(s.state,'mission');});
 test('each morning has an immutable settings snapshot',()=>{const c=normalize();const s=createSession(c);c.game=false;assert.equal(s.config.game,true);});

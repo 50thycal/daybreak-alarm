@@ -1,6 +1,6 @@
 import QRCode from 'qrcode';
 import jsQR from 'jsqr';
-import {defaults,normalize,nextWake,sleepMinutes,createSession,transition,compareRoutines} from '../src/model.js';
+import {defaults,normalize,nextWake,sleepMinutes,shiftWindow,createSession,transition,compareRoutines} from '../src/model.js';
 import {loadStore,saveStore,importStore,emptyStore} from '../src/storage.js';
 
 const $=s=>document.querySelector(s), app=$('#app');
@@ -55,15 +55,21 @@ function dialMarkup(c){
   const start=point(minutes(c.bedtime)),end=point(minutes(c.wakeTime)),duration=sleepMinutes(c);
   const arc=`M ${start.join(' ')} A 126 126 0 ${duration>720?1:0} 1 ${end.join(' ')}`;
   let ticks='';for(let i=0;i<48;i++){const a=i*Math.PI/24-Math.PI/2;const r=i%2?103:99;ticks+=`<line x1="${170+r*Math.cos(a)}" y1="${170+r*Math.sin(a)}" x2="${170+107*Math.cos(a)}" y2="${170+107*Math.sin(a)}" stroke="#647359" stroke-width="${i%2?1:2}"/>`;}
-  return `<svg class="dial" viewBox="0 0 340 340" aria-label="Sleep schedule dial. Drag bedtime and wake handles, or use the time inputs."><circle class="track" cx="170" cy="170" r="126"/><path class="sleep-arc" d="${arc}"/>${ticks}<text x="170" y="88">12 AM</text><text x="252" y="174">6 AM</text><text x="170" y="260">12 PM</text><text x="88" y="174">6 PM</text><text x="170" y="140" class="center-sun">☾</text><text x="170" y="183" class="center-big">${Math.floor(duration/60)}<tspan font-size="18">h</tspan> ${duration%60}<tspan font-size="18">m</tspan></text><text x="170" y="210" class="center-small">PLANNED TIME IN BED</text><circle class="handle" data-handle="bedtime" cx="${start[0]}" cy="${start[1]}" r="14"/><circle class="handle" data-handle="wakeTime" cx="${end[0]}" cy="${end[1]}" r="14"/></svg>`;
+  return `<svg class="dial" viewBox="0 0 340 340" aria-label="Sleep schedule dial. Drag bedtime and wake handles, drag the arc to move both together, or use the time inputs."><circle class="track" cx="170" cy="170" r="126"/><path class="sleep-arc" data-handle="window" d="${arc}" tabindex="0" role="slider" aria-label="Sleep window. Arrow keys move bedtime and wake up together." aria-valuemin="0" aria-valuemax="1435" aria-valuenow="${minutes(c.bedtime)}" aria-valuetext="${formatTime(c.bedtime)} to ${formatTime(c.wakeTime)}"/>${ticks}<text x="170" y="88">12 AM</text><text x="252" y="174">6 AM</text><text x="170" y="260">12 PM</text><text x="88" y="174">6 PM</text><text x="170" y="140" class="center-sun">☾</text><text x="170" y="183" class="center-big">${Math.floor(duration/60)}<tspan font-size="18">h</tspan> ${duration%60}<tspan font-size="18">m</tspan></text><text x="170" y="210" class="center-small">PLANNED TIME IN BED</text><circle class="handle" data-handle="bedtime" cx="${start[0]}" cy="${start[1]}" r="14"/><circle class="handle" data-handle="wakeTime" cx="${end[0]}" cy="${end[1]}" r="14"/></svg>`;
 }
-function wireDial(){const svg=$('.dial');if(!svg)return;let dragging=null;
-  svg.addEventListener('pointerdown',e=>{dragging=e.target.dataset.handle;if(dragging){svg.setPointerCapture(e.pointerId);e.preventDefault();}});
-  svg.addEventListener('pointermove',e=>{if(!dragging)return;const rect=svg.getBoundingClientRect(),x=(e.clientX-rect.left)/rect.width*340-170,y=(e.clientY-rect.top)/rect.height*340-170;let minute=Math.round((((Math.atan2(y,x)+Math.PI/2+Math.PI*2)%(Math.PI*2))/(Math.PI*2)*1440)/5)*5%1440;updateConfig(dragging,`${String(Math.floor(minute/60)).padStart(2,'0')}:${String(minute%60).padStart(2,'0')}`);
-    const temporary=document.createElement('div');temporary.innerHTML=dialMarkup(store.config);svg.innerHTML=temporary.querySelector('svg').innerHTML;$(`[data-config="${dragging}"]`).value=store.config[dragging];$('#schedule-duration').textContent=`${Math.floor(sleepMinutes(store.config)/60)} hours ${sleepMinutes(store.config)%60} minutes planned. Drag to find your rhythm.`;
+function wireDial(){const svg=$('.dial');if(!svg)return;let dragging=null,grab=null;
+  const pointerMinute=e=>{const rect=svg.getBoundingClientRect(),x=(e.clientX-rect.left)/rect.width*340-170,y=(e.clientY-rect.top)/rect.height*340-170;return (((Math.atan2(y,x)+Math.PI/2+Math.PI*2)%(Math.PI*2))/(Math.PI*2))*1440;};
+  const refresh=()=>{const temporary=document.createElement('div');temporary.innerHTML=dialMarkup(store.config);svg.innerHTML=temporary.querySelector('svg').innerHTML;for(const key of ['bedtime','wakeTime'])$(`[data-config="${key}"]`).value=store.config[key];$('#schedule-duration').textContent=`${Math.floor(sleepMinutes(store.config)/60)} hours ${sleepMinutes(store.config)%60} minutes planned. Drag to find your rhythm.`;};
+  const moveWindow=delta=>{store.config=normalize(shiftWindow(store.config,delta));persist();};
+  svg.addEventListener('pointerdown',e=>{dragging=e.target.dataset.handle;if(!dragging)return;svg.setPointerCapture(e.pointerId);e.preventDefault();if(dragging==='window')grab={minute:pointerMinute(e),config:store.config};});
+  svg.addEventListener('pointermove',e=>{if(!dragging)return;const minute=pointerMinute(e);
+    if(dragging==='window'){const delta=Math.round((((minute-grab.minute)%1440+2160)%1440-720)/5)*5;store.config=normalize(shiftWindow(grab.config,delta));persist();}
+    else {const snapped=Math.round(minute/5)*5%1440;updateConfig(dragging,`${String(Math.floor(snapped/60)).padStart(2,'0')}:${String(snapped%60).padStart(2,'0')}`);}
+    refresh();
   });
   // Keep capture on the original SVG while moving; rerender only its contents.
-  svg.addEventListener('pointerup',()=>{dragging=null;render();});svg.addEventListener('pointercancel',()=>{dragging=null;render();});
+  svg.addEventListener('pointerup',()=>{dragging=null;grab=null;render();});svg.addEventListener('pointercancel',()=>{dragging=null;grab=null;render();});
+  svg.addEventListener('keydown',e=>{if(e.target.dataset.handle!=='window')return;const step={ArrowRight:5,ArrowUp:5,ArrowLeft:-5,ArrowDown:-5,PageUp:60,PageDown:-60}[e.key];if(!step)return;e.preventDefault();moveWindow(e.shiftKey?step*3:step);refresh();svg.querySelector('[data-handle="window"]').focus();});
 }
 function intro(title,sub,label='YOUR EVENING RESET'){return `<section class="intro"><div><span class="eyebrow">${label}</span><h1>${title}</h1><p>${sub}</p></div><span class="date-pill">${dateLabel()}</span></section>`;}
 function routineDescription(c){return [...(c.game?[{icon:'✧',title:c.gameType==='memory'?'A little mental spark':c.gameType==='math'?'Morning math':'Connect the path',sub:`${c.difficulty} ${c.gameType==='memory'?'tiles to remember':c.gameType==='math'?'short questions':'steps in order'}`}]:[]),...(c.qr?[{icon:'▦',title:'A reason to get out of bed',sub:c.qrLabel}]:[]),...(c.checkin?[{icon:'◷',title:'Make sure you stay awake',sub:`Check in after ${Math.round(c.checkinSeconds/60)} minutes`}]:[])];}

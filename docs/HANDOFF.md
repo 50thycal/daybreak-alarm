@@ -71,7 +71,7 @@ The same pass caught two layout defects, now fixed in `web/style.css`:
   to their content with a viewport-scaled font and fit from 320 to 1600 px.
 - `.text-link` buttons, such as "Save current", showed the browser's grey button
   background.
-They reach production when the change merges to `main`, which redeploys automatically.
+Merged in PR #1; production deployment `dpl_HQuyQRionvdRw8LSooDXK7Cdgs7h` (`3c309cb`) serves the fixed `style.css` (ETag `dbecbb50…`).
 
 The "Ambient + greeting" preset reuses the ambient bed (`voice.wav` is identical to
 `ambient.wav`) and adds a device-spoken greeting in the foreground, as documented.

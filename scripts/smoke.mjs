@@ -31,6 +31,18 @@ await page.goto(BASE);await page.waitForSelector('#arm-button');
 check('Tonight renders',(await h1(page)).includes('Make room for morning'),await h1(page));
 check('Sleep dial rendered',await page.locator('#dial-host svg').count()===1);
 for(const tab of ['routine','insights','tonight']){await page.click(`.bottom-nav a[data-tab="${tab}"]`);await page.waitForTimeout(150);check(`Tab ${tab} renders`,(await page.locator('main h1').count())>0,await h1(page));}
+// Sleep dial: drag the arc to move both times together; a handle still moves one time
+const toMin=t=>{const [h,m]=t.split(':').map(Number);return h*60+m;},span=c=>(toMin(c.wakeTime)-toMin(c.bedtime)+1440)%1440;
+const dialPoint=async minute=>{const r=await page.locator('.dial').boundingBox(),a=minute/1440*2*Math.PI-Math.PI/2,k=r.width/340;return [r.x+r.width/2+126*k*Math.cos(a),r.y+r.height/2+126*k*Math.sin(a)];};
+const dragAlong=async(from,to)=>{const steps=24;await page.mouse.move(...await dialPoint(from));await page.mouse.down();for(let i=1;i<=steps;i++)await page.mouse.move(...await dialPoint(from+(to-from)*i/steps));await page.mouse.up();await page.waitForTimeout(150);};
+let before=(await store(page)).config;const mid=toMin(before.bedtime)+span(before)/2;
+await dragAlong(mid,mid-300);let after=(await store(page)).config;
+check('Dragging the arc across midnight moves both times together',(toMin(after.bedtime)-toMin(before.bedtime)+1440)%1440===1140&&(toMin(after.wakeTime)-toMin(before.wakeTime)+1440)%1440===1140&&span(after)===span(before),`${before.bedtime}–${before.wakeTime} → ${after.bedtime}–${after.wakeTime}`);
+check('Time inputs follow the arc drag',(await page.inputValue('#bedtime'))===after.bedtime&&(await page.inputValue('#wake-time'))===after.wakeTime);
+before=after;await dragAlong(toMin(before.bedtime)+span(before)/2,toMin(before.bedtime)+span(before)/2+120);after=(await store(page)).config;
+check('Dragging the arc forward shifts the window later',(toMin(after.bedtime)-toMin(before.bedtime)+1440)%1440===120&&span(after)===span(before),`${before.bedtime}–${before.wakeTime} → ${after.bedtime}–${after.wakeTime}`);
+before=after;await dragAlong(toMin(before.wakeTime),toMin(before.wakeTime)+60);after=(await store(page)).config;
+check('Wake handle still changes only wake time',after.bedtime===before.bedtime&&span(after)===span(before)+60,`${before.wakeTime} → ${after.wakeTime}`);
 await page.click('#about-button');check('About dialog opens',await page.locator('#modal[open]').count()===1);await page.click('.dialog-close');
 
 // Sound preview (real user gesture, default autoplay policy)
