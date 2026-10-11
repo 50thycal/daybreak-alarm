@@ -10,7 +10,8 @@ you complete your routine. Every feature has its own switch and settings.
 - **iPhone:** Swift/AlarmKit companion source is included. It has not been compiled
   or tested on a real iPhone in this Linux workspace. Do not rely on it as your
   only alarm until the native checklist passes.
-- **Hosting:** ready for Vercel. Publication requires an authorized Vercel connection.
+- **Repository:** public source is published at https://github.com/50thycal/daybreak-alarm.
+- **Hosting:** configured for Vercel; deployment is pending because the browser session returns to sign-in during repository import. No live deployment is verified.
 - **Privacy:** device-local records. No account, backend database, tracking scripts,
   or cloud sync. Web and native stores are separate; export/import transfers data.
 
