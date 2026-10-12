@@ -53,6 +53,29 @@ test('the sleep arc moves bedtime and wake up together from the keyboard',async(
   assert.equal(doc.querySelector('#bedtime').value,'21:50');assert.equal(doc.querySelector('#wake-time').value,'05:50');assert.match(doc.querySelector('#schedule-duration').textContent,/^8 hours 0 minutes/);
   assert.equal(doc.activeElement,doc.querySelector('[data-handle="window"]'));assert.deepEqual(h.failures,[]);h.dom.window.close();});
 test('range changes are included when practice starts without leaving the settings screen',async()=>{const h=await setup();h.nav('routine');const range=h.w.document.querySelector('[data-config="volume"]');range.value=35;range.dispatchEvent(new h.w.Event('input'));h.click('#practice-button');await h.settle();assert.equal(h.data().active.config.volume,35);h.dom.window.close();});
+test('test alarm rings through the scheduled browser path after 15 seconds and stays out of trends',async()=>{
+  const h=await setup();const real=Date.now,start=real();h.nav('routine');h.click('[data-builtin="simple"]');h.nav('tonight');
+  h.click('#test-alarm');await h.settle();await h.settle();const armed=h.data().armed;
+  assert.equal(armed.test,true);assert.ok(Math.abs(armed.at-(start+15000))<1000,'armed about 15 s out');assert.match(h.w.document.querySelector('#armed-countdown').textContent,/^0:1[45]$/);
+  const tick=()=>h.interval.forEach(fn=>fn());h.w.Date.now=()=>armed.at-1000;tick();assert.equal(h.data().active,null,'does not ring early');assert.equal(h.w.document.querySelector('#armed-countdown').textContent,'0:01','countdown ticks while waiting');
+  h.w.Date.now=()=>armed.at+200;tick();await h.settle();const s=h.data().active;
+  assert.equal(s.test,true);assert.equal(s.mode,'browser');assert.equal(s.state,'ringing');assert.equal(s.scheduledAt,armed.at);assert.equal(h.data().armed,null);
+  assert.match(h.w.document.body.textContent,/TEST ALARM · NOT INCLUDED IN TRENDS/);
+  h.click('#quiet-button');assert.equal(h.data().records[0].test,true);assert.equal(h.data().records[0].state,'complete');
+  h.click('#close-session');h.nav('insights');assert.equal(h.w.document.querySelector('.stat .number').textContent,'0');assert.equal(h.w.document.querySelector('.record .tag').textContent,'Test');
+  h.w.Date.now=real;assert.deepEqual(h.failures,[]);h.dom.window.close();
+});
+test('a test cannot replace a real armed alarm',async()=>{
+  const h=await setup();h.click('#arm-button');await h.settle();await h.settle();const armed=h.data().armed;assert.ok(armed&&!armed.test);
+  h.click('#test-alarm');await h.settle();assert.equal(h.data().armed.id,armed.id);assert.match(h.w.document.querySelector('#toast').textContent,/Cancel it before running a test/);
+  assert.deepEqual(h.failures,[]);h.dom.window.close();
+});
+test('native test alarm schedules AlarmKit 15 seconds out and its system alarm opens a test session',async()=>{
+  const h=await setup(null,true);await h.settle();const start=Date.now();h.click('#test-alarm');await h.settle();await h.settle();
+  const scheduled=h.messages.find(m=>m.action==='schedule');assert.ok(scheduled);assert.ok(Math.abs(scheduled.at-(start+15000))<1000);const armed=h.data().armed;assert.equal(armed.native,true);assert.equal(armed.test,true);
+  await h.w.daybreakNativeEvent({type:'alarm',sessionId:armed.id,alarmID:webcrypto.randomUUID(),kind:'primary',ordinal:0,scheduledAt:armed.at,at:armed.at,config:{...armed.config,game:false,qr:false,checkin:false}});await h.settle();
+  assert.equal(h.data().records[0].test,true);assert.equal(h.data().records[0].mode,'native');assert.ok(h.messages.some(m=>m.action==='sync'&&m.state==='complete'));assert.deepEqual(h.failures,[]);h.dom.window.close();
+});
 test('native stop interactions preserve counter, cancel only after completion, and deduplicate',async()=>{
   const h=await setup(null,true);await h.settle();const config=h.data().config;
   const event={type:'alarm',sessionId:webcrypto.randomUUID(),alarmID:webcrypto.randomUUID(),kind:'followup',ordinal:2,scheduledAt:Date.now()-10000,at:Date.now(),config:{...config,game:false,qr:false,checkin:false}};

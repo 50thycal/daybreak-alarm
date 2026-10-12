@@ -10,6 +10,11 @@ version, outcome, and any native logs without exporting personal data.
    scheduling must show an error and must never display a successful armed state.
 3. Schedule an alarm two minutes ahead. Lock the phone and enable Silent/Focus.
    Confirm actual audio and the system Stop action. Test offline and force-closed.
+   For quick repeat runs, Tonight → "Test: ring in 15 seconds with this routine"
+   schedules a real AlarmKit alarm (with its follow-ups) using the current settings;
+   lock the phone right after tapping it. Test sessions are labelled and never count
+   toward trends. It refuses to run while a real alarm is armed, because scheduling
+   replaces the armed suite.
 4. Quiet once: current audio stops immediately, the mission opens, a follow-up
    stays armed, and repeated Quiet taps cannot extend the mission deadline.
 5. Complete memory, math, and ordered-number missions independently. Combine a

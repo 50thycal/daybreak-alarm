@@ -86,9 +86,10 @@ export function transition(session, action, at=Date.now()) {
   }
   return s;
 }
+export const countsTowardTrends = record => record.mode!=='practice' && !record.test;
 export function compareRoutines(records) {
   const groups=new Map();
-  for(const r of records.filter(r=>r.mode!=='practice')) {
+  for(const r of records.filter(countsTowardTrends)) {
     const key=routineKey(r.config);if(!groups.has(key))groups.set(key,{name:r.config.name,sound:r.config.sound,total:0,reported:0,stayed:0,elapsed:[],pleasant:[]});
     const g=groups.get(key);g.total++;
     if(typeof r.feedback?.stayedUp==='boolean'){g.reported++;if(r.feedback.stayedUp)g.stayed++;}
