@@ -64,7 +64,25 @@ npm i --no-save playwright && npx playwright install chromium
 BASE_URL=https://daybreak-alarm.vercel.app/ npm run smoke
 ```
 
-Playwright is intentionally not a project dependency, so deployments stay lean. The browser edition plays sound only while the page
+Playwright is intentionally not a project dependency, so deployments stay lean.
+
+### Test the alarm in 15 seconds
+
+On Tonight, tap **Test: ring in 15 seconds with this routine**. It schedules through
+the same path as a real alarm (AlarmKit in the iPhone build) with your current
+settings, shows a countdown, then rings and runs your routine. Test sessions are
+labelled "Test" and excluded from trends and comparisons; CSV exports include a
+`test` column. To protect a real alarm, the test refuses to run while one is armed.
+In a browser, keep the tab open and in front: a locked iPhone or hidden tab can pause
+browser timers, which is exactly what this test lets you observe.
+
+Automated version, with real timers and audio in Chromium (two routines: simple
+dismiss, and game → math mission → complete):
+
+```sh
+BASE_URL=https://daybreak-alarm.vercel.app/ npm run test:alarm
+HEADED=1 BASE_URL=https://daybreak-alarm.vercel.app/ npm run test:alarm  # watch and hear it
+``` The browser edition plays sound only while the page
 is active and the browser allows audio. Screen wake lock is best effort. Installing
 it on the Home Screen does **not** give it native alarm privileges. Keep Apple
 Clock as a separate backup. Daybreak does not control Apple Clock alarms.

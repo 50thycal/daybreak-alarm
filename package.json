@@ -11,7 +11,8 @@
     "ios:prepare": "node scripts/prepare-ios.mjs",
     "sounds": "python3 scripts/generate-sounds.py",
     "test:ui": "node --test tests/ui.test.mjs",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "test:alarm": "node scripts/alarm-test.mjs"
   },
   "engines": {
     "node": ">=22"

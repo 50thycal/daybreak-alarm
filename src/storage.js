@@ -8,7 +8,7 @@ function records(input){
     if(r.completedAt!=null&&!timestamp(r.completedAt))throw new Error('This export contains an invalid completion timestamp.');
     for(const e of r.events)if(!e||typeof e.type!=='string'||!timestamp(e.at))throw new Error('This export contains an invalid event.');
     const f=r.feedback;
-    return {...r,config:normalize(r.config),followups:Math.max(0,Math.min(5,Number(r.followups)||0)),snoozes:Math.max(0,Math.min(3,Number(r.snoozes)||0)),feedback:f?{at:timestamp(f.at)?f.at:Date.now(),stayedUp:typeof f.stayedUp==='boolean'?f.stayedUp:null,alertness:[1,2,3,4,5].includes(f.alertness)?f.alertness:null,pleasant:[1,2,3,4,5].includes(f.pleasant)?f.pleasant:null,bedtime:typeof f.bedtime==='string'&&/^([01]\d|2[0-3]):[0-5]\d$/.test(f.bedtime)?f.bedtime:null,interruptions:Number.isInteger(f.interruptions)&&f.interruptions>=0&&f.interruptions<=30?f.interruptions:null}:null};
+    return {...r,test:r.test===true||undefined,config:normalize(r.config),followups:Math.max(0,Math.min(5,Number(r.followups)||0)),snoozes:Math.max(0,Math.min(3,Number(r.snoozes)||0)),feedback:f?{at:timestamp(f.at)?f.at:Date.now(),stayedUp:typeof f.stayedUp==='boolean'?f.stayedUp:null,alertness:[1,2,3,4,5].includes(f.alertness)?f.alertness:null,pleasant:[1,2,3,4,5].includes(f.pleasant)?f.pleasant:null,bedtime:typeof f.bedtime==='string'&&/^([01]\d|2[0-3]):[0-5]\d$/.test(f.bedtime)?f.bedtime:null,interruptions:Number.isInteger(f.interruptions)&&f.interruptions>=0&&f.interruptions<=30?f.interruptions:null}:null};
   });
 }
 export const emptyStore=()=>({version:1,config:normalize(),presets:[],records:[],armed:null,active:null});
